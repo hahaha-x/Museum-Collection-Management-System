@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}藏品档案 · 博物馆智能货架管理系统{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">藏品档案</h1>
+  {% if me.role in ('馆藏管理员','管理员') %}
+  <a class="btn primary" href="{{ url_for('collection_new') }}">+ 新增藏品</a>
+  {% endif %}
+</div>
+
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="编号 / 名称 / EPC">
+  <input type="search" name="shelf" value="{{ request.args.get('shelf','') }}" placeholder="库位筛选">
+  <select name="category">
+    <option value="">全部分类</option>
+    {% for c in categories %}<option value="{{ c }}" {{ 'selected' if c == category }}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="status">
+    <option value="">全部状态</option>
+    {% for s in status_list %}<option value="{{ s }}" {{ 'selected' if s == status }}>{{ s }}</option>{% endfor %}
+  </select>
+  <button class="btn" type="submit">查询</button>
+  <div class="view-toggle">
+    <a class="{{ 'on' if view == 'card' }}" href="{{ url_for('collections_list', q=q, category=category, status=status, view='card') }}">卡片</a>
+    <a class="{{ 'on' if view == 'list' }}" href="{{ url_for('collections_list', q=q, category=category, status=status, view='list') }}">列表</a>
+  </div>
+</form>
+
+{% if view == 'card' %}
+<div class="card-grid">
+  {% for it in items %}
+  <a class="card" href="{{ url_for('collection_detail', cid=it.id) }}">
+    <div class="thumb"><img src="{{ it.photo_url|photo }}" alt="{{ it.name }}" loading="lazy"></div>
+    <div class="card-body">
+      <div class="card-title">{{ it.name }}</div>
+      <div class="card-meta">{{ it.collection_no }} · {{ it.category }}</div>
+      <div class="card-meta">{{ it.era or '-' }} · {{ it.origin or '-' }}</div>
+      <span class="badge st-{{ it.status|stclass }}">{{ it.status or '未入库' }}</span>
+    </div>
+  </a>
+  {% else %}
+  <p class="empty">没有符合条件的藏品</p>
+  {% endfor %}
+</div>
+{% else %}
+<table class="tbl">
+  <thead><tr><th>图片</th><th>编号</th><th>名称</th><th>分类</th><th>年代</th><th>出处</th><th>EPC</th><th>货架</th><th>状态</th></tr></thead>
+  <tbody>
+  {% for it in items %}
+  <tr data-href="{{ url_for('collection_detail', cid=it.id) }}" class="clickable">
+    <td><img class="mini" src="{{ it.photo_url|photo }}" alt=""></td>
+    <td class="mono">{{ it.collection_no }}</td>
+    <td>{{ it.name }}</td>
+    <td>{{ it.category }}</td>
+    <td>{{ it.era or '-' }}</td>
+    <td>{{ it.origin or '-' }}</td>
+    <td class="mono">{{ it.epc or '-' }}</td>
+    <td>{{ it.shelf_area or '-' }}</td>
+    <td><span class="badge st-{{ it.status|stclass }}">{{ it.status or '未入库' }}</span></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="9" class="empty">没有符合条件的藏品</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+<p class="muted">共 {{ items|length }} 件</p>
+<script>
+document.querySelectorAll('tr[data-href]').forEach(function (tr) {
+  tr.addEventListener('click', function () { location.href = tr.dataset.href; });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}自动盘点 · 博物馆智能货架管理系统{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">自动盘点</h1>
+  {% if me.role in ('馆藏管理员','管理员') %}
+  <form method="post" action="{{ url_for('check_new') }}" class="ops-row"
+        onsubmit="return confirm('发起盘点将以当前在库清单为快照,并立即执行一次采集比对。继续?')">
+    <input name="area_range" maxlength="16" placeholder="区域编号(留空=全库)">
+    <button class="btn primary" type="submit">发起盘点</button>
+  </form>
+  {% endif %}
+</div>
+<p class="hint">备注：模拟模式保留演示盘点；真实模式使用 RFID_reader 最近的有效观测，不会用模拟数据补齐。单轮观测尚不能证明全区域覆盖，因此真实结果标为“不完整”，未读到不等于丢失。</p>
+
+<table class="tbl">
+  <thead><tr><th>任务号</th><th>盘点区域</th><th>快照数量</th><th>缺失</th><th>未知</th><th>结果</th><th>发起人</th><th>发起时间</th><th>完成时间</th></tr></thead>
+  <tbody>
+  {% for t in tasks %}
+  <tr data-href="{{ url_for('check_detail', tid=t.id) }}" class="clickable">
+    <td>#{{ t.id }} <small>{{ (t.result_report|from_json).get('source', '历史未标注') if t.result_report else '历史未标注' }}</small></td>
+    <td>{{ '全库' if t.area_range == 'FULL' else t.area_range }}</td>
+    <td>{{ (t.snapshot_epc_list|from_json)|length }}</td>
+    <td>{{ t.missing_count }}</td>
+    <td>{{ t.unknown_count }}</td>
+    <td><span class="badge st-{{ 'in' if t.status == '已完成' else 'repair' }}">{{ t.status }}</span></td>
+    <td>{{ t.operator_name or '-' }}</td>
+    <td>{{ t.started_at|dt }}</td>
+    <td>{{ t.finished_at|dt }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="9" class="empty">暂无盘点任务</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<script>
+document.querySelectorAll('tr[data-href]').forEach(function (tr) {
+  tr.addEventListener('click', function () { location.href = tr.dataset.href; });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# .NET
+bin/
+obj/
+
+# Runtime data / secrets
+*.db
+*.sqlite
+*.jsonl
+.env

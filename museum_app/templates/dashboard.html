@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="page-title">工作台</h1>
+<div class="stat-grid">
+  <div class="stat"><div class="num">{{ stats.total }}</div><div class="lbl">藏品总数</div></div>
+  <div class="stat"><div class="num">{{ stats.in_stock }}</div><div class="lbl">在库</div></div>
+  <div class="stat"><div class="num">{{ stats.on_display }}</div><div class="lbl">展出中</div></div>
+  <div class="stat"><div class="num">{{ stats.on_loan }}</div><div class="lbl">借调中</div></div>
+  <div class="stat"><div class="num">{{ stats.in_repair }}</div><div class="lbl">修复中</div></div>
+  <div class="stat"><div class="num">{{ stats.on_out }}</div><div class="lbl">外展中</div></div>
+  <div class="stat"><div class="num {{ 'danger-num' if alert_open else '' }}">{{ alert_open }}</div><div class="lbl">待处理异常</div></div>
+  <div class="stat"><div class="num">
+    {% if dev %}<span class="badge st-{{ 'in' if dev.connected == '在线' else ('repair' if dev.connected == '故障' else 'away') }}">{{ dev.connected }}</span>{% else %}-{% endif %}
+  </div><div class="lbl">RFID设备</div></div>
+  <div class="stat"><div class="num dt-num">{{ dev.last_seen_at|dt if dev else '-' }}</div><div class="lbl">最近采集时间</div></div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <h2>最近流水</h2>
+    <a class="btn" href="{{ url_for('history') }}">全部记录</a>
+  </div>
+  <table class="tbl">
+    <thead><tr><th>流水号</th><th>藏品</th><th>操作</th><th>状态变更</th><th>操作人</th><th>时间</th></tr></thead>
+    <tbody>
+    {% for r in recent %}
+    <tr>
+      <td>#{{ r.id }}</td>
+      <td><a href="{{ url_for('collection_detail', cid=r.collection_id) }}">{{ r.collection_name }}</a>
+          <span class="muted mono">{{ r.collection_no }}</span></td>
+      <td><span class="tag">{{ r.action }}</span></td>
+      <td>{{ r.before_status }} → {{ r.after_status }}</td>
+      <td>{{ r.operator_name or '-' }}</td>
+      <td>{{ r.created_at|dt }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="empty">暂无流转记录</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

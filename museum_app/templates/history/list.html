@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}流水记录 · 博物馆智能货架管理系统{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">流水记录</h1>
+  <a class="btn" href="{{ url_for('history_export', q=request.args.get('q',''), action=request.args.get('action',''), operator_id=request.args.get('operator_id',''), date_from=request.args.get('date_from',''), date_to=request.args.get('date_to','')) }}">导出 Excel</a>
+</div>
+
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ request.args.get('q','') }}" placeholder="编号 / 名称">
+  <select name="action">
+    <option value="">全部操作</option>
+    {% for a in actions %}<option value="{{ a }}" {{ 'selected' if request.args.get('action') == a }}>{{ a }}</option>{% endfor %}
+  </select>
+  <select name="operator_id">
+    <option value="">全部操作人</option>
+    {% for o in operators %}<option value="{{ o.id }}" {{ 'selected' if request.args.get('operator_id','') == o.id|string }}>{{ o.name }}</option>{% endfor %}
+  </select>
+  <input type="date" name="date_from" value="{{ request.args.get('date_from','') }}">
+  <input type="date" name="date_to" value="{{ request.args.get('date_to','') }}">
+  <button class="btn" type="submit">查询</button>
+</form>
+
+<table class="tbl">
+  <thead><tr><th>流水号</th><th>编号</th><th>藏品名称</th><th>操作</th><th>前状态</th><th>后状态</th><th>借用人/去向</th><th>预计归还</th><th>操作人</th><th>备注</th><th>时间</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr>
+    <td>#{{ r.id }}</td>
+    <td class="mono">{{ r.collection_no }}</td>
+    <td><a href="{{ url_for('collection_detail', cid=r.collection_id) }}">{{ r.collection_name }}</a></td>
+    <td><span class="tag">{{ r.action }}</span></td>
+    <td>{{ r.before_status }}</td>
+    <td>{{ r.after_status }}</td>
+    <td>{{ r.borrower or '-' }}</td>
+    <td>{{ r.due_at|dt }}</td>
+    <td>{{ r.operator_name or '-' }}</td>
+    <td>{{ r.remark or '-' }}</td>
+    <td>{{ r.created_at|dt }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="11" class="empty">暂无记录</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="muted">共 {{ rows|length }} 条(页面最多显示 500 条,导出不受此限)</p>
+{% endblock %}

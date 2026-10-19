@@ -1,0 +1,175 @@
+/* ===== 博物馆智能货架管理系统 ===== */
+:root {
+  --bg: #f4f1ea;
+  --panel: #fffdf9;
+  --ink: #2d2a26;
+  --muted: #8a8378;
+  --line: #e3ddd1;
+  --brand: #7d3b2e;
+  --brand-d: #63301f;
+  --green: #2e7d4f;
+  --blue: #2f5f8f;
+  --orange: #b06414;
+  --purple: #6b4d8f;
+  --teal: #2b7a78;
+  --red: #b03a2e;
+  --radius: 10px;
+  --shadow: 0 1px 4px rgba(45, 42, 38, .08);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+       font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif; }
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.mono { font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+.muted { color: var(--muted); font-size: .9em; }
+
+/* ---- 顶栏 ---- */
+.topbar { display: flex; align-items: center; gap: 24px; padding: 0 24px;
+          background: #3b2f28; color: #f4f1ea; height: 56px; position: sticky; top: 0; z-index: 10; }
+.topbar .brand { font-family: Georgia, "Songti SC", "SimSun", serif; font-size: 18px;
+                 color: #f4f1ea; font-weight: 600; letter-spacing: 1px; }
+.topbar .brand:hover { text-decoration: none; color: #fff; }
+.nav { display: flex; gap: 4px; flex: 1; }
+.nav a { color: #cfc6bb; padding: 6px 14px; border-radius: 6px; font-size: 15px; }
+.nav a:hover { color: #fff; background: rgba(255, 255, 255, .08); text-decoration: none; }
+.nav a.on { color: #fff; background: var(--brand); }
+.who { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.who .logout { color: #cfc6bb; }
+.who .logout:hover { color: #fff; }
+
+/* ---- 布局 ---- */
+.container { max-width: 1200px; margin: 24px auto; padding: 0 24px 48px; }
+.page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.page-title { font-family: Georgia, "Songti SC", "SimSun", serif; font-size: 24px; margin: 0 0 4px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+         box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.panel-head h2 { margin: 0; font-size: 18px; }
+.notice { color: var(--muted); }
+.error-card { text-align: center; padding: 48px; }
+.error-card p { color: var(--muted); margin: 12px 0 24px; }
+
+/* ---- 按钮 ---- */
+.btn { display: inline-block; padding: 8px 16px; border: 1px solid var(--line); border-radius: 8px;
+       background: #fff; color: var(--ink); font-size: 14px; cursor: pointer; line-height: 1.4; }
+.btn:hover { border-color: var(--brand); color: var(--brand); text-decoration: none; }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.primary:hover { background: var(--brand-d); color: #fff; }
+.btn.danger { color: var(--red); border-color: var(--red); background: #fff; }
+.btn.danger:hover { background: var(--red); color: #fff; }
+.btn.small { padding: 4px 10px; font-size: 13px; }
+.btn.block { width: 100%; }
+
+/* ---- 表单 ---- */
+.filters { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.filters input, .filters select { padding: 8px 12px; border: 1px solid var(--line);
+       border-radius: 8px; font-size: 14px; background: #fff; min-width: 140px; }
+.filters input[type="search"] { min-width: 220px; }
+.form label { display: block; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
+.form input, .form select { display: block; width: 100%; margin-top: 6px; padding: 9px 12px;
+       border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-weight: 400; background: #fff; }
+.form input:focus, .form select:focus, .filters input:focus, .filters select:focus {
+  outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(125, 59, 46, .12); }
+.form input[readonly] { background: #f4f1ea; color: var(--muted); }
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 24px; }
+.hint { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 4px; }
+.actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+.actions form { display: inline; }
+.preview img { max-height: 160px; border-radius: 8px; border: 1px solid var(--line); }
+
+/* ---- 表格 ---- */
+.tbl { width: 100%; border-collapse: collapse; background: var(--panel);
+       border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.tbl th { text-align: left; background: #efe9dd; font-size: 13px; color: #6b6155;
+          padding: 10px 12px; white-space: nowrap; }
+.tbl td { padding: 10px 12px; border-top: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+.tbl tr.clickable:hover td { background: #faf7f0; }
+.tbl .empty { text-align: center; color: var(--muted); padding: 32px; }
+.tbl .mini { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; display: block; }
+.tbl .ops { display: flex; gap: 8px; }
+.tbl .ops form { display: inline; }
+
+/* ---- 徽章 ---- */
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.badge.big { font-size: 14px; padding: 4px 14px; }
+.badge.st-in { background: #e2f2e8; color: var(--green); }
+.badge.st-out { background: #e3ecf5; color: var(--blue); }
+.badge.st-loan { background: #f7ead7; color: var(--orange); }
+.badge.st-repair { background: #ece4f4; color: var(--purple); }
+.badge.st-away { background: #dff0ef; color: var(--teal); }
+.badge.role { background: #efe9dd; color: #6b6155; }
+.tag { display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 12px;
+       background: #efe9dd; color: var(--brand-d); font-weight: 600; }
+
+/* ---- 提示 ---- */
+.flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+.flash.success { background: #e2f2e8; color: var(--green); border: 1px solid #bfe0cd; }
+.flash.error { background: #fbe4e1; color: var(--red); border: 1px solid #f0c6c0; }
+
+/* ---- 登录页 ---- */
+.login-wrap { min-height: calc(100vh - 140px); display: flex; align-items: center; justify-content: center; }
+.login-card { width: 380px; background: var(--panel); border: 1px solid var(--line);
+              border-radius: 14px; box-shadow: var(--shadow); padding: 36px; }
+.login-card h1 { font-family: Georgia, "Songti SC", "SimSun", serif; font-size: 22px;
+                 text-align: center; margin: 0 0 8px; }
+.login-card .sub { text-align: center; color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+
+/* ---- 工作台统计 ---- */
+.stat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+        box-shadow: var(--shadow); padding: 18px; text-align: center; }
+.stat .num { font-size: 30px; font-weight: 700; color: var(--brand); font-family: Georgia, serif; }
+.stat .lbl { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+/* ---- 藏品卡片 ---- */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+        overflow: hidden; box-shadow: var(--shadow); color: var(--ink); transition: transform .12s; }
+.card:hover { transform: translateY(-2px); text-decoration: none; box-shadow: 0 4px 12px rgba(45,42,38,.12); }
+.thumb { height: 180px; background: #ece7dc; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-body { padding: 14px 16px 16px; }
+.card-title { font-size: 16px; font-weight: 700; font-family: Georgia, "Songti SC", serif; margin-bottom: 6px; }
+.card-meta { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.card-body .badge { margin-top: 8px; }
+.view-toggle { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.view-toggle a { padding: 8px 14px; font-size: 13px; color: var(--muted); background: #fff; }
+.view-toggle a.on { background: var(--brand); color: #fff; }
+.view-toggle a:hover { text-decoration: none; }
+
+/* ---- 藏品详情 ---- */
+.detail { display: grid; grid-template-columns: 380px 1fr; gap: 24px; margin-bottom: 20px; }
+.detail-img { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+              overflow: hidden; box-shadow: var(--shadow); }
+.detail-img img { width: 100%; height: 100%; object-fit: cover; display: block; min-height: 300px; }
+.detail-info { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+               box-shadow: var(--shadow); padding: 20px 24px; }
+.fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 24px; margin: 16px 0; }
+.fields dt { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.fields dd { margin: 0; font-size: 15px; }
+
+/* ---- 出入库 ---- */
+.pick-head { display: flex; align-items: center; justify-content: space-between;
+             margin: 12px 0; gap: 16px; }
+.pick-head h3 { margin: 0; font-size: 15px; }
+.pick-head input { padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; min-width: 200px; }
+#items tbody tr:hover td { background: #faf7f0; }
+
+@media (max-width: 900px) {
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  .detail { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .nav { display: none; }
+}
+
+/* RFID 与盘点 */
+.ops-row { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.ops-row form { margin: 0; }
+.ops-row input[name='area_range'] { width: 180px; }
+tr.row-danger td { color: var(--red); font-weight: 600; }
+.alert-dot { display: inline-block; min-width: 16px; padding: 0 4px; margin-left: 5px; background: var(--red); color: #fff; border-radius: 8px; font-size: 11px; text-align: center; line-height: 16px; }
+.tag-danger { background: var(--red); color: #fff; }
+.stat .danger-num { color: var(--red); }
+.stat .dt-num { font-size: 15px; }
+td.wrap, dd.wrap { white-space: normal; word-break: break-all; max-width: 420px; }

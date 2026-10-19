@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ item.name }} · 藏品详情{% endblock %}
+{% block content %}
+<div class="detail">
+  <div class="detail-img"><img src="{{ item.photo_url|photo }}" alt="{{ item.name }}"></div>
+  <div class="detail-info">
+    <div class="page-head">
+      <h1 class="page-title">{{ item.name }}</h1>
+      <span class="badge st-{{ item.status|stclass }} big">{{ item.status or '未入库' }}</span>
+    </div>
+    <dl class="fields">
+      <div><dt>藏品编号</dt><dd class="mono">{{ item.collection_no }}</dd></div>
+      <div><dt>分类</dt><dd>{{ item.category }}</dd></div>
+      <div><dt>年代</dt><dd>{{ item.era or '-' }}</dd></div>
+      <div><dt>出处</dt><dd>{{ item.origin or '-' }}</dd></div>
+      <div><dt>RFID EPC</dt><dd class="mono">{{ item.epc or '-' }}</dd></div>
+      <div><dt>货架区域</dt><dd>{{ item.shelf_area or '-' }}</dd></div>
+      <div><dt>建档时间</dt><dd>{{ item.created_at|dt }}</dd></div>
+      <div><dt>最后修改</dt><dd>{{ item.updated_at|dt }}</dd></div>
+    </dl>
+    {% if me.role in ('馆藏管理员','管理员') %}
+    <div class="actions">
+      <a class="btn" href="{{ url_for('collection_edit', cid=item.id) }}">编辑档案</a>
+      {% if item.status == '在库' %}
+      <form method="post" action="{{ url_for('collection_delete', cid=item.id) }}"
+            onsubmit="return confirm('确认删除该藏品档案?此操作不可恢复。')">
+        <button class="btn danger" type="submit">删除</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>流转记录</h2></div>
+  <table class="tbl">
+    <thead><tr><th>流水号</th><th>操作</th><th>状态变更</th><th>借用人/去向</th><th>预计归还</th><th>操作人</th><th>备注</th><th>时间</th></tr></thead>
+    <tbody>
+    {% for h in history %}
+    <tr>
+      <td>#{{ h.id }}</td>
+      <td><span class="tag">{{ h.action }}</span></td>
+      <td>{{ h.before_status }} → {{ h.after_status }}</td>
+      <td>{{ h.borrower or '-' }}</td>
+      <td>{{ h.due_at|dt }}</td>
+      <td>{{ h.operator_name or '-' }}</td>
+      <td>{{ h.remark or '-' }}</td>
+      <td>{{ h.created_at|dt }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8" class="empty">暂无流转记录</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

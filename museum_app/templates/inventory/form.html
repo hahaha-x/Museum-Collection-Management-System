@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}出入库登记{% endblock %}
+{% block content %}
+<h1 class="page-title">出入库登记</h1>
+
+{% if not actions %}
+<div class="panel notice">
+  当前角色({{ me.role }})没有出入库操作权限。如需登记,请联系馆藏管理员或管理员。
+</div>
+{% else %}
+<form class="panel form" method="post" action="{{ url_for('inventory_submit') }}" onsubmit="return confirmSubmit(event)">
+  <div class="form-grid">
+    <label>操作类型
+      <select name="action" id="action">
+        {% for a in actions %}
+        <option value="{{ a }}">{{ a }}({{ flow[a]['from']|join('/') }} → {{ flow[a]['to'] }})</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label id="borrower-label" style="display:none">借用人/去向 *
+      <input name="borrower" id="borrower" maxlength="64" placeholder="借用单位 / 经办人">
+    </label>
+    <label id="due-label" style="display:none">预计归还时间
+      <input type="datetime-local" name="due_at" id="due_at">
+    </label>
+    <label>备注
+      <input name="remark" maxlength="200" placeholder="展会名称 / 借调单位 / 送修原因等">
+    </label>
+  </div>
+
+  <div class="pick-head">
+    <h3>选择藏品 <span class="hint" id="hint"></span></h3>
+    <input type="search" id="filter" placeholder="筛选编号 / 名称 / EPC">
+  </div>
+  <table class="tbl" id="items">
+    <thead><tr><th></th><th>编号</th><th>名称</th><th>EPC</th><th>货架</th><th>当前状态</th></tr></thead>
+    <tbody>
+    {% for it in items %}
+    <tr data-status="{{ it.status }}">
+      <td><input type="checkbox" name="collection_ids" value="{{ it.id }}"></td>
+      <td class="mono">{{ it.collection_no }}</td>
+      <td>{{ it.name }}</td>
+      <td class="mono">{{ it.epc }}</td>
+      <td>{{ it.shelf_area or '-' }}</td>
+      <td><span class="badge st-{{ it.status|stclass }}">{{ it.status }}</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="actions">
+    <button class="btn primary" type="submit">提交登记</button>
+    <span class="hint">实物核验(RFID)与人脸认证模块暂缓启用,提交前请人工核对实物;提交将二次确认。</span>
+  </div>
+</form>
+
+<script id="flow-data" type="application/json">{{ flow_json|safe }}</script>
+<script>
+const FLOW = JSON.parse(document.getElementById('flow-data').textContent);
+const sel = document.getElementById('action');
+const filterInput = document.getElementById('filter');
+const LOAN_ACTIONS = ['出库', '借调', '外展'];
+
+function refresh() {
+  const a = sel.value;
+  const allowed = (FLOW[a] && FLOW[a].from) || [];
+  document.getElementById('hint').textContent = '「' + a + '」仅允许: ' + allowed.join(' / ');
+  const isLoan = LOAN_ACTIONS.includes(a);
+  document.getElementById('borrower-label').style.display = isLoan ? '' : 'none';
+  document.getElementById('due-label').style.display = isLoan ? '' : 'none';
+  document.getElementById('borrower').required = isLoan;
+  const kw = filterInput.value.trim().toLowerCase();
+  document.querySelectorAll('#items tbody tr').forEach(tr => {
+    const okStatus = allowed.includes(tr.dataset.status);
+    const okKw = !kw || tr.textContent.toLowerCase().includes(kw);
+    tr.style.display = (okStatus && okKw) ? '' : 'none';
+    if (!okStatus) { const cb = tr.querySelector('input'); if (cb) cb.checked = false; }
+  });
+}
+sel.addEventListener('change', refresh);
+filterInput.addEventListener('input', refresh);
+refresh();
+
+function confirmSubmit(e) {
+  const n = document.querySelectorAll('#items input:checked').length;
+  if (n === 0) { alert('请至少选择一件藏品'); e.preventDefault(); return false; }
+  const a = sel.value;
+  if (LOAN_ACTIONS.includes(a) && !document.getElementById('borrower').value.trim()) {
+    alert('「' + a + '」必须填写借用人/去向');
+    e.preventDefault(); return false;
+  }
+  return confirm('确认对 ' + n + ' 件藏品执行「' + a + '」?');
+}
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}{{ '编辑账号' if item else '新建账号' }} · 人员管理{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ '编辑账号' if item else '新建账号' }}</h1>
+<form class="form panel" method="post">
+  <div class="form-grid">
+    <label>工号
+      <input name="employee_no" value="{{ item.employee_no if item else '' }}"
+             {{ 'disabled' if item else 'required maxlength="32" placeholder="登录账号,唯一"' }}>
+      <span class="hint">{{ '工号作为登录账号不可修改' if item else '' }}</span>
+    </label>
+    <label>姓名 *<input name="name" required maxlength="64" value="{{ item.name if item else '' }}"></label>
+    <label>角色 *
+      <select name="role">
+        {% for r in roles %}
+        <option value="{{ r }}" {{ 'selected' if item and item.role == r }}>{{ r }}</option>
+        {% endfor %}
+      </select>
+      <span class="hint">馆藏管理员:档案/出入库/送修;查看者:仅查询;管理员:全部</span>
+    </label>
+    <label>电话<input name="phone" maxlength="20" value="{{ item.phone or '' }}"></label>
+    {% if not item %}
+    <label>初始密码 *(至少 6 位)<input name="password" type="password" required minlength="6"></label>
+    {% endif %}
+  </div>
+  <div class="actions">
+    <button class="btn primary" type="submit">{{ '保存' if item else '创建' }}</button>
+    <a class="btn" href="{{ url_for('users_list') }}">取消</a>
+  </div>
+</form>
+{% endblock %}

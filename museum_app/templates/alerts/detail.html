@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}异常详情 #{{ alert.id }} · 异常中心{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">异常详情 #{{ alert.id }}
+    <span class="badge st-{{ 'away' if alert.status == '未处理' else 'in' }}">{{ alert.status }}</span></h1>
+  <a class="btn" href="{{ url_for('alerts_list') }}">返回列表</a>
+</div>
+
+<div class="panel">
+  <dl class="fields">
+    <div><dt>异常类型</dt><dd><span class="tag">{{ alert.type }}</span></dd></div>
+    <div><dt>异常时间</dt><dd>{{ alert.created_at|dt }}</dd></div>
+    <div><dt>关联藏品</dt><dd>
+      {% if alert.collection_id %}
+        <a href="{{ url_for('collection_detail', cid=alert.collection_id) }}">{{ alert.collection_name }}</a>
+        <span class="muted mono">{{ alert.collection_no }}</span>
+      {% else %}-{% endif %}
+    </dd></div>
+    <div><dt>关联 EPC</dt><dd class="mono">{{ alert.epc or '-' }}</dd></div>
+    <div><dt>关联设备</dt><dd class="mono">{{ alert.device_no or '-' }}</dd></div>
+    <div><dt>触发原因</dt><dd class="wrap">{{ alert.reason }}</dd></div>
+  </dl>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>处理记录</h2></div>
+  {% if alert.status == '已处理' %}
+  <dl class="fields">
+    <div><dt>处置意见</dt><dd class="wrap">{{ alert.handle_note }}</dd></div>
+    <div><dt>处理人</dt><dd>{{ alert.handler_name or '-' }}</dd></div>
+    <div><dt>处理时间</dt><dd>{{ alert.handled_at|dt }}</dd></div>
+  </dl>
+  {% elif can_handle %}
+  <form method="post" action="{{ url_for('alert_handle', aid=alert.id) }}" class="form">
+    <label>处置意见 *
+      <textarea name="handle_note" rows="3" maxlength="200" required
+                placeholder="如:已核实实物在架(标签漏读)/已追回/已通知维修等"></textarea>
+    </label>
+    <div class="actions"><button class="btn primary" type="submit">确认处理</button></div>
+  </form>
+  {% else %}
+  <p class="muted">当前角色无处置权限,请联系馆藏管理员或管理员。</p>
+  {% endif %}
+</div>
+{% endblock %}

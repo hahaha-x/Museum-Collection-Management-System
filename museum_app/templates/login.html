@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}登录 · 博物馆智能货架管理系统{% endblock %}
+{% block content %}
+<div class="login-wrap">
+  <div class="login-card">
+    <h1>博物馆智能货架管理系统</h1>
+    <p class="sub">请使用工号登录(人脸认证模块暂缓启用,以账号密码代替)</p>
+    <form method="post">
+      <label>工号
+        <input name="employee_no" required autofocus autocomplete="username" placeholder="如 admin">
+      </label>
+      <label>密码
+        <input name="password" type="password" required autocomplete="current-password" placeholder="请输入密码">
+      </label>
+      <button class="btn primary block" type="submit">登 录</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

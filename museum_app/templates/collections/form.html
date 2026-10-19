@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ '编辑藏品' if item else '新增藏品' }} · 藏品档案{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ '编辑藏品' if item else '新增藏品' }}</h1>
+<form class="form panel" method="post" enctype="multipart/form-data">
+  <div class="form-grid">
+    <label>藏品编号 *
+      <input name="collection_no" required maxlength="32" placeholder="如 MUS-0009"
+             value="{{ item.collection_no if item else '' }}" {{ 'readonly' if item }}>
+      {% if item %}<span class="hint">编号对外标识,不可修改</span>{% endif %}
+    </label>
+    <label>藏品名称 *
+      <input name="name" required maxlength="128" value="{{ item.name if item else '' }}">
+    </label>
+    <label>分类 *
+      <input name="category" required maxlength="64" placeholder="书画 / 陶瓷 / 青铜器 / 玉器..."
+             value="{{ item.category if item else '' }}">
+    </label>
+    <label>年代
+      <input name="era" maxlength="32" placeholder="如 唐 / 北宋" value="{{ item.era if item else '' }}">
+    </label>
+    <label>出处
+      <input name="origin" maxlength="128" placeholder="出土地点 / 来源" value="{{ item.origin if item else '' }}">
+    </label>
+    <label>货架区域
+      <input name="shelf_area" maxlength="32" placeholder="如 A1" value="{{ item.shelf_area if item else '' }}">
+    </label>
+    <label>RFID EPC *
+      <input name="epc" required maxlength="64" class="mono" placeholder="如 EPC-0009"
+             value="{{ item.epc if item else '' }}">
+      {% if item %}<span class="hint">修改 EPC 即重绑标签</span>{% endif %}
+    </label>
+    <label>照片 URL
+      <input name="photo_url" maxlength="256" placeholder="或直接粘贴图片地址">
+    </label>
+  </div>
+  <label>上传照片
+    <input type="file" name="photo" accept="image/*">
+    <span class="hint">上传优先于照片 URL;支持 png/jpg/jpeg/gif/webp,最大 8MB</span>
+  </label>
+  {% if item and item.photo_url %}
+  <div class="preview"><img src="{{ item.photo_url|photo }}" alt="当前照片"></div>
+  {% endif %}
+  <div class="actions">
+    <button class="btn primary" type="submit">保存</button>
+    <a class="btn" href="{{ url_for('collections_list') }}">取消</a>
+  </div>
+</form>
+{% endblock %}

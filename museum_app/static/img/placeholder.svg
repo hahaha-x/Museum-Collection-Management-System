@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#ece7dc"/>
+  <g fill="none" stroke="#b7ad9c" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M200 90c-30 0-50 20-50 45 0 18 10 32 22 40-25 8-42 30-42 58v47h140v-47c0-28-17-50-42-58 12-8 22-22 22-40 0-25-20-45-50-45z"/>
+    <path d="M130 300h140v30H130z"/>
+  </g>
+  <text x="200" y="368" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#b7ad9c">暂无照片</text>
+</svg>

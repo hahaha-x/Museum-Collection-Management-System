@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}RFID 设备 · 博物馆智能货架管理系统{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">RFID 设备状态</h1>
+  {% if is_admin and dev %}
+  <div class="ops-row">
+    <form method="post" action="{{ url_for('rfid_toggle') }}">
+      <input type="hidden" name="csrf_token" value="{{ rfid_csrf }}">
+      <button class="btn primary" type="submit">{{ '暂停采集' if dev.collecting else '开始采集' }}</button>
+    </form>
+    {% if rfid_mode == 'mock' %}
+    <form method="post" action="{{ url_for('rfid_simulate') }}">
+      <input type="hidden" name="csrf_token" value="{{ rfid_csrf }}">
+      <input type="hidden" name="mode" value="normal">
+      <button class="btn" type="submit">模拟正常读数</button>
+    </form>
+    <form method="post" action="{{ url_for('rfid_simulate') }}">
+      <input type="hidden" name="csrf_token" value="{{ rfid_csrf }}">
+      <input type="hidden" name="mode" value="empty">
+      <button class="btn" type="submit">模拟空读</button>
+    </form>
+    <form method="post" action="{{ url_for('rfid_simulate') }}"
+          onsubmit="return confirm('确认模拟设备故障?采集将自动暂停。')">
+      <input type="hidden" name="csrf_token" value="{{ rfid_csrf }}">
+      <input type="hidden" name="mode" value="fault">
+      <button class="btn danger" type="submit">模拟设备故障</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% if dev %}
+<div class="panel">
+  <h2>数据源切换</h2>
+  <p>当前模式：<strong>{{ '真实设备（Alien 9900）' if rfid_mode == 'device' else '模拟数据（不需要硬件）' }}</strong></p>
+  {% if is_admin %}
+  <form method="post" action="{{ url_for('rfid_source_switch') }}" class="ops-row">
+    <input type="hidden" name="csrf_token" value="{{ rfid_csrf }}">
+    <label>数据来源
+      <select name="source">
+        <option value="mock" {{ 'selected' if rfid_mode == 'mock' }}>模拟数据</option>
+        <option value="device" {{ 'selected' if rfid_mode == 'device' }}>真实设备</option>
+      </select>
+    </label>
+    <button class="btn primary" type="submit">应用数据源</button>
+  </form>
+  {% else %}<p>仅管理员可以切换全系统数据源。</p>{% endif %}
+  <p class="hint">备注：切换会暂停网页取数并隐藏旧模式读数，不删除历史或藏品。请再点击“开始采集”。真实模式需启动 RFID_reader 并配置相同密钥，故障时不会自动回退模拟。此开关不切换库存数据库，调试请使用测试藏品或独立测试库。</p>
+  <p class="hint">“暂停采集”只暂停网页后端取数，不会关闭 C# 服务或停止 Reader 射频。真实模式暂不根据单轮缺读生成离架告警。</p>
+</div>
+<div class="panel">
+  <dl class="fields">
+    <div><dt>阅读器编号</dt><dd class="mono">{{ dev.device_no }}</dd></div>
+    <div><dt>连接状态</dt><dd><span class="badge st-{{ 'in' if dev.connected == '在线' else ('repair' if dev.connected == '故障' else 'away') }}" id="dev-connected">{{ dev.connected }}</span></dd></div>
+    <div><dt>采集状态</dt><dd><span class="badge {{ 'st-out' if dev.collecting else 'st-in' }}" id="dev-collecting">{{ '自动采集中' if dev.collecting else '已暂停' }}</span></dd></div>
+    <div><dt>最近采集时间</dt><dd id="dev-lastseen">{{ dev.last_seen_at|dt }}</dd></div>
+    <div><dt>安装位置</dt><dd>{{ dev.location or '-' }}</dd></div>
+    <div><dt>故障信息</dt><dd id="dev-error">{{ dev.last_error or '无' }}</dd></div>
+  </dl>
+  <p class="hint">页面每 5 秒自动刷新状态;自动采集为系统后台线程执行(每 5 秒一轮),无需页面保持打开。</p>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>当前批次标签</h2><span class="hint">最多展示 10 条；空读、失败和过期时清空展示，不沿用旧标签</span></div>
+  <table class="tbl">
+    <thead><tr><th>EPC</th><th>读取时间</th></tr></thead>
+    <tbody id="recent-body">
+    {% for r in recent %}
+    <tr><td class="mono">{{ r.epc }}</td><td>{{ r.read_at|dt }}</td></tr>
+    {% else %}
+    <tr><td colspan="2" class="empty">当前没有有效标签（等待采集、正常空读或设备异常）</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+const pageSource = {{ rfid_mode|tojson }};
+const pageGeneration = {{ snapshot.generation|tojson }};
+setInterval(function () {
+  fetch('{{ url_for("rfid_data") }}').then(function (r) { return r.json(); }).then(function (d) {
+    if (d.error) return;
+    if (d.source !== pageSource || d.generation !== pageGeneration) { location.reload(); return; }
+    document.getElementById('dev-connected').textContent = d.connected;
+    document.getElementById('dev-collecting').textContent = d.collecting ? '自动采集中' : '已暂停';
+    document.getElementById('dev-lastseen').textContent = d.last_seen_at ? d.last_seen_at.slice(0, 16) : '-';
+    document.getElementById('dev-error').textContent = d.last_error || '无';
+    var tb = document.getElementById('recent-body');
+    tb.replaceChildren();
+    if (d.recent.length) {
+      d.recent.forEach(function (r) {
+        const tr = document.createElement('tr');
+        const epc = document.createElement('td'); epc.className = 'mono'; epc.textContent = r.epc;
+        const stamp = document.createElement('td'); stamp.textContent = r.read_at || '-';
+        tr.append(epc, stamp); tb.append(tr);
+      });
+    } else {
+      const tr = document.createElement('tr'); const cell = document.createElement('td');
+      cell.colSpan = 2; cell.className = 'empty'; cell.textContent = '当前没有有效标签';
+      tr.append(cell); tb.append(tr);
+    }
+  }).catch(function () {
+    document.getElementById('dev-error').textContent = '网页状态更新失败，请检查连接';
+    document.getElementById('recent-body').replaceChildren();
+  });
+}, 5000);
+</script>
+{% else %}
+<div class="panel notice">未登记 RFID 设备,请先运行 init_db.py 初始化。</div>
+{% endif %}
+{% endblock %}

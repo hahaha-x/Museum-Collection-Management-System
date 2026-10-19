@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}人员管理 · 博物馆智能货架管理系统{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">人员管理</h1>
+  <a class="btn primary" href="{{ url_for('user_new') }}">+ 新建账号</a>
+</div>
+
+<table class="tbl">
+  <thead><tr><th>ID</th><th>工号</th><th>姓名</th><th>角色</th><th>电话</th><th>业务数</th><th>最后登录</th><th>状态</th><th>操作</th></tr></thead>
+  <tbody>
+  {% for u in users %}
+  <tr>
+    <td>{{ u.id }}</td>
+    <td class="mono">{{ u.employee_no }}</td>
+    <td>{{ u.name }}</td>
+    <td><span class="badge role">{{ u.role }}</span></td>
+    <td>{{ u.phone or '-' }}</td>
+    <td>{{ u.op_count }}</td>
+    <td>{{ u.last_login_at|dt }}</td>
+    <td><span class="badge st-{{ 'in' if u.status == '启用' else 'repair' }}">{{ u.status }}</span></td>
+    <td class="ops">
+      <a class="btn small" href="{{ url_for('user_edit', uid=u.id) }}">编辑</a>
+      {% if u.id != me.id %}
+      <form method="post" action="{{ url_for('user_toggle', uid=u.id) }}">
+        <button class="btn small" type="submit">{{ '停用' if u.status == '启用' else '启用' }}</button>
+      </form>
+      {% endif %}
+      <form method="post" action="{{ url_for('user_reset_pwd', uid=u.id) }}" onsubmit="return resetPwd(this)">
+        <input type="hidden" name="new_password">
+        <button class="btn small" type="submit">重置密码</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="muted">停用后该账号无法登录;有流转记录的账号不可删除,只能停用(审计保护)。</p>
+<script>
+function resetPwd(form) {
+  const pwd = prompt('请输入新密码(至少 6 位):');
+  if (!pwd) return false;
+  if (pwd.length < 6) { alert('密码至少 6 位'); return false; }
+  form.new_password.value = pwd;
+  return true;
+}
+</script>
+{% endblock %}

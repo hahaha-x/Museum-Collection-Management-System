@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}盘点详情 #{{ task.id }} · 自动盘点{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">盘点任务 #{{ task.id }}
+    <span class="badge st-{{ 'in' if task.status == '已完成' else 'repair' }}">{{ task.status }}</span></h1>
+  <a class="btn" href="{{ url_for('check_list') }}">返回列表</a>
+</div>
+
+<div class="panel">
+  <p class="hint">数据来源：{{ report.get('source', '历史未标注') if report else '历史未标注' }}。{{ '真实结果仅为单轮观测比对，覆盖未经验证；未读到不等于藏品丢失。' if report and report.get('source') == 'device' else '模拟/历史结果不能作为真实设备验收依据。' }}</p>
+  <dl class="fields">
+    <div><dt>盘点区域</dt><dd>{{ '全库' if task.area_range == 'FULL' else task.area_range }}</dd></div>
+    <div><dt>快照数量</dt><dd>{{ (task.snapshot_epc_list|from_json)|length }}</dd></div>
+    <div><dt>实测数量</dt><dd>{{ (task.observed_epc_list|from_json)|length }}</dd></div>
+    <div><dt>发起人</dt><dd>{{ task.operator_name or '-' }}</dd></div>
+    <div><dt>发起时间</dt><dd>{{ task.started_at|dt }}</dd></div>
+    <div><dt>完成时间</dt><dd>{{ task.finished_at|dt }}</dd></div>
+  </dl>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>正常在架({{ report.normal|length if report else 0 }})</h2></div>
+  <table class="tbl">
+    <thead><tr><th>编号</th><th>名称</th><th>EPC</th></tr></thead>
+    <tbody>
+    {% for r in report.normal %}
+    <tr><td class="mono">{{ r.no }}</td><td>{{ r.name }}</td><td class="mono">{{ r.epc }}</td></tr>
+    {% else %}<tr><td colspan="3" class="empty">无</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>缺失(疑似离架,{{ report.missing|length if report else 0 }})</h2></div>
+  <table class="tbl">
+    <thead><tr><th>编号</th><th>名称</th><th>EPC</th></tr></thead>
+    <tbody>
+    {% for r in report.missing %}
+    <tr class="row-danger"><td class="mono">{{ r.no }}</td><td>{{ r.name }}</td><td class="mono">{{ r.epc }}</td></tr>
+    {% else %}<tr><td colspan="3" class="empty">无缺失</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>未知标签({{ report.unknown|length if report else 0 }})</h2></div>
+  <table class="tbl">
+    <thead><tr><th>EPC</th></tr></thead>
+    <tbody>
+    {% for r in report.unknown %}
+    <tr class="row-danger"><td class="mono">{{ r.epc }}</td></tr>
+    {% else %}<tr><td colspan="1" class="empty">无未知标签</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

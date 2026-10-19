@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}博物馆智能货架管理系统{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if me %}
+<header class="topbar">
+  <a class="brand" href="{{ url_for('dashboard') }}">博物馆智能货架管理系统</a>
+  <nav class="nav">
+    <a href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint == 'dashboard' }}">首页</a>
+    <a href="{{ url_for('collections_list') }}" class="{{ 'on' if request.endpoint and request.endpoint.startswith('collection') }}">藏品档案</a>
+    <a href="{{ url_for('inventory_page') }}" class="{{ 'on' if request.endpoint and request.endpoint.startswith('inventory') }}">出入库登记</a>
+    <a href="{{ url_for('history') }}" class="{{ 'on' if request.endpoint and request.endpoint.startswith('history') }}">流水记录</a>
+    <a href="{{ url_for('rfid_page') }}" class="{{ 'on' if request.endpoint and request.endpoint.startswith('rfid') }}">RFID设备</a>
+    <a href="{{ url_for('alerts_list') }}" class="{{ 'on' if request.endpoint and request.endpoint.startswith('alert') }}">异常中心<span class="alert-dot" id="alert-dot" style="display:none"></span></a>
+    {% if me.role in ('馆藏管理员','管理员') %}
+    <a href="{{ url_for('check_list') }}" class="{{ 'on' if request.endpoint and request.endpoint.startswith('check') }}">自动盘点</a>
+    {% endif %}
+    {% if me.role == '管理员' %}
+    <a href="{{ url_for('users_list') }}" class="{{ 'on' if request.endpoint and request.endpoint.startswith('user') }}">人员管理</a>
+    {% endif %}
+  </nav>
+  <div class="who">
+    <span class="badge role">{{ me.role }}</span>
+    <span class="name">{{ me.name }}</span>
+    <a class="logout" href="{{ url_for('logout') }}">退出</a>
+  </div>
+</header>
+{% if me.role == '管理员' %}
+<script>
+// 管理员全局告警轮询:每 15 秒检查未处理异常数,有新告警弹窗提醒
+var lastAlertCount = null;
+setInterval(function () {
+  fetch('{{ url_for("alerts_pending_count") }}').then(function (r) { return r.json(); }).then(function (d) {
+    var dot = document.getElementById('alert-dot');
+    if (dot) {
+      if (d.count > 0) { dot.style.display = ''; dot.textContent = d.count; }
+      else { dot.style.display = 'none'; }
+    }
+    if (lastAlertCount !== null && d.count > lastAlertCount) {
+      if (confirm('检测到 ' + d.count + ' 条未处理异常告警(疑似离架/未知标签/设备故障),是否前往异常中心处理?')) {
+        location.href = '{{ url_for("alerts_list") }}';
+      }
+    }
+    lastAlertCount = d.count;
+  });
+}, 15000);
+</script>
+{% endif %}
+{% endif %}
+<main class="container">
+  {% if me %}
+  <p class="hint">RFID 数据源：<strong>{{ '真实设备' if rfid_mode == 'device' else '模拟数据（无设备调试）' }}</strong> · <a href="{{ url_for('rfid_page') }}">设备与数据源设置</a></p>
+  {% endif %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>
